@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NITHARI: The Noida Serial Murders | Interactive Screenplay Explorer</title>
+
+    <!-- Google Fonts: Playfair Display for screenplay, IBM Plex Sans for dashboard, IBM Plex Mono for stats -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'netflix-black': '#0a0a0a',
+                        'netflix-dark': '#121212',
+                        'netflix-card': '#181818',
+                        'netflix-border': '#262626',
+                        'blood-red': '#dc2626',
+                        'crimson-glow': '#ef4444',
+                        'muted-text': '#a3a3a3',
+                        'subtle-gray': '#e5e5e5',
+                        'gold-accent': '#d4a843',
+                        'cat-law': '#3b82f6',
+                        'cat-accused': '#ef4444',
+                        'cat-victims': '#f97316',
+                        'cat-media': '#22c55e',
+                        'cat-narrative': '#a855f7',
+                    },
+                    fontFamily: {
+                        display: ['"Playfair Display"', 'Georgia', 'serif'],
+                        sans: ['"IBM Plex Sans"', 'sans-serif'],
+                        mono: ['"IBM Plex Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar matching dark theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #262626;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ef4444;
+        }
+
+        /* Ambient background glow */
+        .ambient-glow {
+            background: radial-gradient(circle at top right, rgba(220, 38, 38, 0.08) 0%, transparent 60%);
+        }
+
+        /* Pulse animations for high tension UI */
+        @keyframes pulse-border {
+
+            0%,
+            100% {
+                border-color: rgba(220, 38, 38, 0.15);
+            }
+
+            50% {
+                border-color: rgba(220, 38, 38, 0.6);
+            }
+        }
+
+        .active-pulse {
+            animation: pulse-border 3s infinite;
+        }
+
+        /* Fade-in transitions */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Screenplay styling modifications for Read Mode */
+        .read-mode-active #sidebar {
+            display: none !important;
+        }
+
+        .read-mode-active #main-content {
+            padding: 2rem max(2rem, (100vw - 800px) / 2) !important;
+            background: #060606 !important;
+        }
+
+        .read-mode-active .hide-in-read {
+            display: none !important;
+        }
+
+        .read-mode-active .script-maximize {
+            width: 100% !important;
+            max-width: 800px !important;
+            margin: 0 auto !important;
+            background: #111111 !important;
+            border: 1px solid #1f1f1f !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+        }
+
+        .read-mode-active .dialogue-text {
+            font-size: 1.25rem !important;
+            line-height: 2rem !important;
+        }
+
+        /* Print formatting */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+
+            #sidebar,
+            #header,
+            .hide-in-print,
+            button,
+            .filter-row {
+                display: none !important;
+            }
+
+            #main-content {
+                width: 100% !important;
+                padding: 0 !important;
+                background: white !important;
+            }
+
+            .scene-card {
+                page-break-inside: avoid;
+                border: 1px solid #ddd !important;
+                background: white !important;
+                color: black !important;
+                margin-bottom: 2rem !important;
+                box-shadow: none !important;
+            }
+
+            .dialogue-text {
+                color: black !important;
+            }
+
+            .scene-context {
+                background: #f5f5f5 !important;
+                border-left: 4px solid #333 !important;
+                color: #222 !important;
+            }
+
+            .profile-name {
+                color: black !important;
+            }
+
+            .info-card {
+                background: #fafafa !important;
+                border: 1px solid #ccc !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-netflix-black text-subtle-gray font-sans min-h-screen flex flex-col relative overflow-x-hidden ambient-glow">
+
+    <!-- ============================================================
+       HEADER
+    ============================================================ -->
+    <header
+        class="sticky top-0 z-40 bg-netflix-black/95 backdrop-blur-md border-b border-netflix-border px-6 py-4 flex items-center justify-between gap-4 hide-in-print">
+        <div class="flex items-center gap-3">
+            <div
+                class="bg-blood-red text-white font-display font-black text-xs tracking-[0.2em] px-2.5 py-1 rounded shadow-md uppercase select-none">
+                NETFLIX DOC
+            </div>
+            <div>
+                <h1 class="font-display text-xl font-bold text-white tracking-wide flex items-center gap-2">
+                    NITHARI <span class="text-blood-red font-light text-sm font-sans tracking-widest hidden md:inline">|
+                        THE NOIDA SERIAL MURDERS</span>
+                </h1>
+                <p class="text-[10px] text-muted-text uppercase tracking-widest font-mono">Interactive Screenplay
+                    Explorer · 45-Min Docu-Series</p>
+            </div>
+        </div>
+
+        <!-- Global Search Bar -->
+        <div class="flex-1 max-w-md mx-4 hidden md:block">
+            <div class="relative">
+                <input type="text" id="global-search" oninput="handleSearch()"
+                    placeholder="Search characters, roles, or dialogue text..."
+                    class="w-full bg-netflix-dark border border-netflix-border focus:border-blood-red rounded-full px-5 py-2 text-xs text-subtle-gray placeholder-muted-text outline-none transition-all pl-10">
+                <svg class="w-4 h-4 text-muted-text absolute left-3.5 top-2.5" fill="none" stroke="currentColor"
+                    stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- System Stats / Screenplay Metrics -->
+        <div class="flex items-center gap-5 text-right font-mono text-2xs uppercase tracking-wider text-muted-text">
+            <div>
+                Characters: <span id="stat-chars" class="text-blood-red font-bold font-sans">19</span>
+            </div>
+            <div>
+                Scenes: <span id="stat-scenes" class="text-blood-red font-bold font-sans">19</span>
+            </div>
+            <button id="mobile-menu-btn" onclick="toggleSidebarMobile()"
+                class="md:hidden bg-netflix-dark border border-netflix-border p-2 rounded text-white hover:border-blood-red transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Search (only on small devices) -->
+    <div class="p-4 bg-netflix-black border-b border-netflix-border md:hidden hide-in-print">
+        <div class="relative">
+            <input type="text" id="global-search-mobile" oninput="handleSearchMobile()"
+                placeholder="Search screenplay..."
+                class="w-full bg-netflix-dark border border-netflix-border focus:border-blood-red rounded-full px-5 py-2.5 text-xs text-subtle-gray placeholder-muted-text outline-none transition-all pl-10">
+            <svg class="w-4 h-4 text-muted-text absolute left-4 top-3" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+                </path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ============================================================
+       APPLICATION WORKSPACE
+    ============================================================ -->
+    <div class="flex-1 flex min-h-[calc(100vh-73px)] relative">
+
+        <!-- SIDEBAR: CHARACTER LIST GRID -->
+        <aside id="sidebar"
+            class="w-80 md:w-96 bg-netflix-dark border-r border-netflix-border flex flex-col shrink-0 fixed inset-y-[73px] left-0 z-30 transform -translate-x-full md:translate-x-0 md:sticky transition-transform duration-300 ease-in-out hide-in-print">
+
+            <!-- Category Filters -->
+            <div class="p-4 border-b border-netflix-border bg-netflix-black flex flex-col gap-2">
+                <div class="text-[10px] uppercase font-mono tracking-widest text-muted-text">Filter Roster</div>
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="filterCategory('All', this)"
+                        class="cat-btn active px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-blood-red text-white border border-transparent transition">All</button>
+                    <button onclick="filterCategory('Accused', this)"
+                        class="cat-btn px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-netflix-card border border-netflix-border hover:border-crimson-glow text-muted-text transition">Accused</button>
+                    <button onclick="filterCategory('Victims/Parents', this)"
+                        class="cat-btn px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-netflix-card border border-netflix-border hover:border-crimson-glow text-muted-text transition">Victims</button>
+                    <button onclick="filterCategory('Law Enforcement', this)"
+                        class="cat-btn px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-netflix-card border border-netflix-border hover:border-crimson-glow text-muted-text transition">Law</button>
+                    <button onclick="filterCategory('Media/Activists', this)"
+                        class="cat-btn px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-netflix-card border border-netflix-border hover:border-crimson-glow text-muted-text transition">Media</button>
+                    <button onclick="filterCategory('Narrative', this)"
+                        class="cat-btn px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-netflix-card border border-netflix-border hover:border-crimson-glow text-muted-text transition">Narrator</button>
+                </div>
+            </div>
+
+            <!-- Scrollable list of 19 Characters -->
+            <div id="character-roster" class="flex-1 overflow-y-auto p-3 space-y-2">
+                <!-- Characters injected dynamically by JS -->
+            </div>
+        </aside>
+
+        <!-- Main backdrop for mobile sidebar overlay -->
+        <div id="sidebar-overlay" onclick="toggleSidebarMobile()"
+            class="hidden fixed inset-0 z-20 bg-black/80 backdrop-blur-sm md:hidden"></div>
+
+        <!-- ============================================================
+           MAIN CONTENT DISPLAY PANEL
+        ============================================================ -->
+        <main id="main-content" class="flex-1 p-6 md:p-8 flex flex-col gap-8 bg-netflix-black transition-all">
+
+            <!-- WELCOME SCREEN (Shown by default, hidden when character selected) -->
+            <div id="welcome-screen"
+                class="max-w-3xl mx-auto my-auto text-center flex flex-col items-center gap-6 fade-in hide-in-print">
+                <div
+                    class="w-16 h-16 rounded-full border border-blood-red/40 bg-blood-red/10 flex items-center justify-center text-blood-red animate-pulse">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                </div>
+                <div class="space-y-2">
+                    <span class="text-xs font-mono uppercase tracking-[0.3em] text-blood-red font-semibold">Netflix
+                        Forensic Crime Files</span>
+                    <h2 class="font-display text-4xl md:text-5xl font-black text-white tracking-tight">एक गहरी सच्ची
+                        कहानी</h2>
+                    <p class="text-sm md:text-base text-muted-text leading-relaxed max-w-xl">
+                        Explore the intricate script, timelines, testimonies, and legal parameters of the Nithari Serial
+                        Murders (Noida, 2004-2006). Select a character card from the roster to unlock their
+                        chronological screenplay.
+                    </p>
+                </div>
+
+                <!-- Case Statistics -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full mt-4">
+                    <div class="bg-netflix-card border border-netflix-border p-4 rounded-lg">
+                        <div class="font-display text-3xl font-bold text-white">28</div>
+                        <div class="text-[10px] text-muted-text uppercase tracking-widest font-mono mt-1">Skeletons
+                            Found</div>
+                    </div>
+                    <div class="bg-netflix-card border border-netflix-border p-4 rounded-lg">
+                        <div class="font-display text-3xl font-bold text-white">19</div>
+                        <div class="text-[10px] text-muted-text uppercase tracking-widest font-mono mt-1">Detailed Roles
+                        </div>
+                    </div>
+                    <div class="bg-netflix-card border border-netflix-border p-4 rounded-lg">
+                        <div class="font-display text-3xl font-bold text-white">2023</div>
+                        <div class="text-[10px] text-muted-text uppercase tracking-widest font-mono mt-1">High Court
+                            Acquittals</div>
+                    </div>
+                    <div class="bg-netflix-card border border-netflix-border p-4 rounded-lg">
+                        <div class="font-display text-3xl font-bold text-white">45M</div>
+                        <div class="text-[10px] text-muted-text uppercase tracking-widest font-mono mt-1">Screenplay Run
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-2xs text-muted-text/60 max-w-lg mt-6 border-t border-netflix-border pt-4">
+                    <strong>CAUTION:</strong> This interactive database contains transcripts, legal arguments, and
+                    chilling accounts of crimes against children. Reader discretion is strongly advised.
+                </div>
+            </div>
+
+            <!-- DETAILED CHARACTER PROFILE PANEL (Hidden by default) -->
+            <div id="character-detail-panel" class="hidden flex-col gap-6 fade-in w-full">
+
+                <!-- Character Hero Header -->
+                <div
+                    class="relative overflow-hidden rounded-xl bg-gradient-to-r from-netflix-card to-netflix-black border border-netflix-border p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 active-pulse">
+                    <div class="flex items-center gap-5">
+                        <!-- Portait Badge -->
+                        <div id="detail-portrait"
+                            class="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-blood-red/10 border border-blood-red/30 flex items-center justify-center font-display text-3xl md:text-4xl font-extrabold text-white uppercase select-none shadow-inner shadow-black">
+                            SK
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-3">
+                                <span id="detail-category"
+                                    class="px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase text-white bg-blood-red">ACCUSED</span>
+                                <span class="text-[10px] text-muted-text font-mono hide-in-print">Interactive
+                                    Timeline</span>
+                            </div>
+                            <h2 id="detail-name"
+                                class="font-display text-2xl md:text-4xl font-bold text-white tracking-tight">Surinder
+                                Koli</h2>
+                            <p id="detail-actor-tag" class="text-xs text-muted-text italic">Role: Primary Confession &
+                                House Servant</p>
+                        </div>
+                    </div>
+
+                    <!-- Interface Controls -->
+                    <div class="flex items-center gap-2 shrink-0 hide-in-print">
+                        <button onclick="toggleReadMode()" id="read-mode-btn"
+                            class="bg-netflix-dark border border-netflix-border hover:border-blood-red text-white px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                </path>
+                            </svg>
+                            <span>Read Mode</span>
+                        </button>
+                        <button onclick="printCharacterScript()"
+                            class="bg-blood-red hover:bg-red-700 text-white px-4 py-2 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2v3a2 2 0 002 2zm5-11h.01M12 11h.01">
+                                </path>
+                            </svg>
+                            <span>Print Script</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4-Column Character Profile Panel -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 hide-in-read hide-in-print">
+                    <!-- Biography Card -->
+                    <div class="bg-netflix-card border border-netflix-border rounded-xl p-5 space-y-3">
+                        <div
+                            class="text-[10px] font-mono uppercase tracking-widest text-blood-red font-semibold flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blood-red"></span> Biography
+                        </div>
+                        <p id="profile-bio" class="text-xs text-subtle-gray leading-relaxed font-light">
+                            Detailed biography details of the selected character.
+                        </p>
+                    </div>
+
+                    <!-- Motivation Card -->
+                    <div class="bg-netflix-card border border-netflix-border rounded-xl p-5 space-y-3">
+                        <div
+                            class="text-[10px] font-mono uppercase tracking-widest text-blood-red font-semibold flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blood-red"></span> Motivation
+                        </div>
+                        <p id="profile-motivation" class="text-xs text-subtle-gray leading-relaxed font-light">
+                            Motivations and objectives behind actions during this phase.
+                        </p>
+                    </div>
+
+                    <!-- Costume References Card -->
+                    <div class="bg-netflix-card border border-netflix-border rounded-xl p-5 space-y-3">
+                        <div
+                            class="text-[10px] font-mono uppercase tracking-widest text-blood-red font-semibold flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blood-red"></span> Costume Reference
+                        </div>
+                        <p id="profile-costume" class="text-xs text-subtle-gray leading-relaxed font-light">
+                            Detailed visual references for wardrobe styling and onscreen representation.
+                        </p>
+                    </div>
+
+                    <!-- Speaking Style Card -->
+                    <div class="bg-netflix-card border border-netflix-border rounded-xl p-5 space-y-3">
+                        <div
+                            class="text-[10px] font-mono uppercase tracking-widest text-blood-red font-semibold flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blood-red"></span> Speaking Style
+                        </div>
+                        <p id="profile-style"
+                            class="text-xs text-subtle-gray leading-relaxed font-light text-blood-red font-medium">
+                            Voice modulation, linguistic traits, and psychological cues.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- CONNECTED SCREENPLAY SECTION -->
+                <div class="space-y-4 script-maximize">
+                    <div class="flex items-center justify-between border-b border-netflix-border pb-3">
+                        <h3
+                            class="font-display text-lg md:text-xl font-bold text-white tracking-wide flex items-center gap-2">
+                            COMPLETE CHRONOLOGICAL DIALOGUES & SCENES
+                        </h3>
+                        <span id="scene-counter-badge"
+                            class="font-mono text-2xs uppercase bg-netflix-card px-3 py-1 rounded border border-netflix-border text-muted-text">
+                            0 Scenes Mapped
+                        </span>
+                    </div>
+
+                    <!-- Scene Flow Container -->
+                    <div id="scenes-container" class="space-y-6">
+                        <!-- Screenplay scenes will be rendered dynamically here -->
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- ============================================================
+       DYNAMIC APPLICATION JAVASCRIPT & DATA MATRIX
+    ============================================================ -->
+    <script>
+        'use strict';
+
+        // 1. DATA MATRIX: Roster Categories
+        const CATEGORIES = {
+            'Accused': { color: '#ef4444', textClass: 'text-cat-accused', bgClass: 'bg-cat-accused' },
+            'Law Enforcement': { color: '#3b82f6', textClass: 'text-cat-law', bgClass: 'bg-cat-law' },
+            'Victims/Parents': { color: '#f97316', textClass: 'text-cat-victims', bgClass: 'bg-cat-victims' },
+            'Media/Activists': { color: '#22c55e', textClass: 'text-cat-media', bgClass: 'bg-cat-media' },
+            'Narrative': { color: '#a855f7', textClass: 'text-cat-narrative', bgClass: 'bg-cat-narrative' },
+        };
+
+        // 2. DATA MATRIX: 19 Detailed Characters (No placeholders)
+        const CHARACTERS = [
+            {
+                id: 1,
+                name: 'Narrator (V.O.)',
+                category: 'Narrative',
+                actor: 'Voice-Over / Invisible Presence',
+                bio: 'एक अदृश्य, सर्वज्ञानी और भूतिया आवाज़। यह आवाज़ गहरी, भारी, और बहुत धीमी है। यह कहानी के गहरे सच को खंगालती है और नोएडा के सेक्टर 31 की कोहरे से ढकी सुनसान गलियों की भीषण सच्चाई को बिना किसी झिझक के बयाँ करती है। दर्शकों को हर दृश्य के पीछे छिपे भयानक दर्द से जोड़ने का काम करता है।',
+                motivation: 'इस क्रूर कहानी की गंभीरता, सामाजिक असमानता और गहराती त्रासदी को उजागर करना। दर्शकों को झकझोरना और उन्हें यह सोचने पर मजबूर करना कि कैसे एक सभ्य समाज के बीच ऐसा नरक पलता रहा।',
+                costume: 'कोई दृश्य रूप नहीं। केवल स्क्रीन पर छाई धुंध, टिमटिमाती लाइटों और सुनसान अंधेरी कोठरी के बैकग्राउंड में गूँजती हुई भारी आवाज़।',
+                style: 'गहरी, धीमी और सस्पेंस से भरी हिंदी। हर वाक्य के बाद लंबा विराम (Pause)। सांस लेने की आवाज़ और हर शब्द में एक भयावह वज़न।',
+            },
+            {
+                id: 2,
+                name: 'Documentary Host',
+                category: 'Narrative',
+                actor: 'Investigative Journalist / Host',
+                bio: 'एक दृढ़, चालीस साल का खोजी पत्रकार जो सीधे कैमरे की तरफ मुखातिब होता है। वह बहुत शांत लेकिन बेहद आक्रामक तरीके से सच के करीब जाने का प्रयास करता है। नोएडा की संकरी गलियों और अदालत के गलियारों में घूमते हुए वह दर्शकों का मार्गदर्शक बनता है।',
+                motivation: 'जाँच की खामियों, पुलिस की लापरवाही, पीड़ितों की चीखों और न्यायिक फैसलों के पीछे छिपे ठोस वैज्ञानिक कारणों को तटस्थता के साथ दर्शकों के सामने रखना।',
+                costume: 'मिट्टी के रंग की सफारी शर्ट, गहरा ग्रे ब्लेज़र, साधारण जींस और धूल से सने चमड़े के जूते। आँखों पर पतला मेटल-फ्रेम चश्मा।',
+                style: 'तथ्यात्मक, स्पष्ट और सीधी हिंदी-अंग्रेज़ी मिश्रित भाषा। आवाज़ में खोजी पत्रकारिता की गंभीरता और बिना किसी नाटक के सच बोलने का अंदाज़।',
+            },
+            {
+                id: 3,
+                name: 'Chitra Singh',
+                category: 'Media/Activists',
+                actor: 'Senior Crime Reporter (2006)',
+                bio: '2006 में इस मामले को सबसे पहले कवर करने वाली निडर अपराध रिपोर्टर। तीखे तेवर, तेज़ चाल और खोजी नज़रों वाली चित्रा सिंह अपनी पुरानी डायरियाँ और प्रेस रिपोर्ट्स हमेशा अपने पास रखती हैं। उन्होंने निठारी गाँव के बेबस माँ-बाप की आवाज़ को दिल्ली के बड़े स्टूडियो तक पहुँचाया।',
+                motivation: 'स्थानीय प्रशासन और पुलिस की निष्क्रियता को राष्ट्रीय टेलीविज़न पर उजागर करना ताकि गरीबों के बच्चों को भी न्याय मिल सके और जाँच सीबीआई को दी जाए।',
+                costume: 'सूती खादी की कुर्ती, कंधे पर लटकता बड़ा झोला (Canvas Bag), पैरों में कोल्हापुरी चप्पल। आँखों में नींद की कमी और दृढ़ता का भाव।',
+                style: 'तेज़, आत्मविश्वास से भरी और थोड़े गुस्से वाली हिंदी। रिपोर्टिंग करते वक्त आवाज़ बुलंद होती है लेकिन पीड़ितों से बात करते समय बेहद संवेदनशील।',
+            },
+            {
+                id: 4,
+                name: 'Sunita Devi',
+                category: 'Victims/Parents',
+                actor: 'Mother of 7-year-old Reena',
+                bio: 'निठारी गाँव की झुग्गी में रहने वाली एक गरीब घरेलू सफाई कर्मी। उनकी सात साल की बेटी रीना 2005 की एक दोपहर बाज़ार से सामान लेने गई थी और कभी वापस नहीं लौटी। सुनीता देवी तब से लेकर आज तक अपनी बेटी की एक पुरानी फटी हुई फोटो को सीने से लगाए न्याय की उम्मीद में भटक रही हैं।',
+                motivation: 'अपनी खोई हुई मासूम बेटी के अवशेषों का आखिरी बार सम्मानजनक अंतिम संस्कार करना और उसकी दर्दनाक मौत के ज़िम्मेदार हैवानों को फाँसी के फंदे पर देखना।',
+                costume: 'बेहद फीकी, फटी हुई सूती साड़ी, माथे पर फैली हुई सिंदूर की बिंदी, सूजी हुई आँखें जो रो-रोकर लगभग पथरा चुकी हैं।',
+                style: 'बहुत धीमी, काँपती और टूटी हुई हिंदी। बोलते-बोलते अचानक रोने लगना और फिर खामोश हो जाना। आवाज़ में बेबसी और व्यवस्था के प्रति अथाह दर्द।',
+            },
+            {
+                id: 5,
+                name: 'Jaganath Prasad',
+                category: 'Victims/Parents',
+                actor: 'Father of 10-year-old Chotu',
+                bio: 'एक दिहाड़ी मज़दूर जिनका दस साल का इकलौता बेटा छोटू 2004 में कोठी D-5 के पास से रहस्यमयी ढंग से लापता हो गया था। जगन्नाथ प्रसाद का दिल टूट चुका है लेकिन उनकी आँखों का गुस्सा आज भी ज़िंदा है। उन्होंने पुलिस की मार और धमकियों का सामना करते हुए अपनी तलाश जारी रखी।',
+                motivation: 'उस भ्रष्ट व्यवस्था और पुलिस प्रशासन को बेनकाब करना जिसने एक गरीब पिता को उसके बेटे की गुमशुदगी की रिपोर्ट लिखने के बदले थाने से भगा दिया था।',
+                costume: 'धूल से सना पुराना मैला कुर्ता, कंधे पर रखा हुआ फटा गमछा और घिसी हुई प्लास्टिक की हवाई चप्पल। हाथों पर कड़ी मेहनत के घाव।',
+                style: 'कच्ची, देहाती हिंदी। आवाज़ में बेहद तीखा गुस्सा, दहाड़ और टूटे हुए पिता की तड़प। पुलिस का ज़िक्र आते ही मुट्ठियां खिंच जाना।',
+            },
+            {
+                id: 6,
+                name: 'Moninder Singh Pandher',
+                category: 'Accused',
+                actor: 'Owner of D-5 Bungalow',
+                bio: 'सेक्टर 31 स्थित कोठी नंबर D-5 का मालिक। एक रईस, संभ्रांत कारोबारी जिसका दिल्ली के रसूखदार लोगों में उठना-बैठना था। बाहरी दुनिया के लिए वह एक सभ्य, शराब और संगीत का शौकीन व्यक्ति था, लेकिन उसके घर के अंदर बच्चों के कंकालों की मंडी सजी थी। वह कानूनी दांव-पेंचों का माहिर है।',
+                motivation: 'खुद को पाक-साफ साबित करना, सारा दोष नौकर सुरिंदर कोली पर मढ़ना और अपने रसूख का इस्तेमाल कर जेल की सलाखों से बाहर रहना।',
+                costume: 'सिल्क का सफेद कुर्ता-पायजामा, बारीक सोने के फ्रेम का चश्मा, करीने से संवारी गई सफेद दाढ़ी और हाथ में सोने की अंगूठी।',
+                style: 'धीमी, बहुत शांत, नपी-तुली हिंदी-अंग्रेज़ी मिश्रित भाषा। अत्यंत शिष्टता का नाटक करना, हर सवाल के जवाब में खुद को पीड़ित दिखाना।',
+            },
+            {
+                id: 7,
+                name: 'Surinder Koli',
+                category: 'Accused',
+                actor: 'House Help & Cook at D-5',
+                bio: 'मोनिंदर सिंह पंढेर का वफादार और आज्ञाकारी नौकर। उत्तराखंड के पहाड़ों से आया बेहद साधारण दिखने वाला यह व्यक्ति भारत के इतिहास का सबसे क्रूर सीरियल किलर साबित हुआ। वह D-5 में खाना बनाता था, सफ़ाई करता था और वहीं बच्चों को मौत के घाट उतारकर उनके टुकड़े करता था।',
+                motivation: 'अपने मालिक के आदेशों का आँख मूँदकर पालन करना और अपनी दबी हुई हिंसक, वीभत्स विकृतियों को कोठी की एकांत चारदीवारी में पूरा करना।',
+                costume: 'घिसा हुआ ढीला-ढाला ग्रे रंग का पुराना स्वेटर, मटमैली पैंट और पैरों में फटी चप्पल। आँखों में कोई भाव नहीं — बिल्कुल खाली, ठंडी और बड़ी आँखें।',
+                style: 'बेहद सपाट, मोनोटोन और रोबोटिक हिंदी। बिना किसी झिझक या पछतावे के, बहुत ही सहज तरीके से भयानक हत्याओं का कदम-दर-कदम विवरण देना।',
+            },
+            {
+                id: 8,
+                name: 'Ram Charan',
+                category: 'Law Enforcement',
+                actor: 'UP Police Sub-Inspector (2005)',
+                bio: '2005 में निठारी इलाके के स्थानीय पुलिस चौकी प्रभारी। इन्होंने पीड़ित परिवारों की गुहार को अनसुना किया, उन्हें धमकाया और लापता बच्चों के मामलों को पूरी तरह नज़रअंदाज़ किया। वह अपनी ड्यूटी में कोताही के लिए काम के भारी दबाव का बहाना बनाते हैं।',
+                motivation: 'खुद को विभागीय जाँच और मुकदमों से बचाना। यह साबित करना कि उन्होंने कानून के दायरे में रहकर काम किया और सिस्टम में कोई गड़बड़ी नहीं थी।',
+                costume: 'झुर्रियों वाली हल्की खाकी वर्दी, जिसके बटन ढीले हैं। कमर पर लटकती लाठी और माथे पर लगातार आता पसीना जिसे वह रुमाल से पोंछते रहते हैं।',
+                style: 'रक्षात्मक, कर्कश और चिड़चिड़ी हिंदी। सवालों से बचने के लिए चिल्लाना या सरकारी फाइलों के नियमों का हवाला देना।',
+            },
+            {
+                id: 9,
+                name: 'S.K. Sharma',
+                category: 'Law Enforcement',
+                actor: 'CBI Chief Investigator (2007)',
+                bio: 'सीबीआई के वरिष्ठ वैज्ञानिक जाँचकर्ता जिन्होंने यूपी पुलिस से मामला हाथ में लिया। वे अत्यधिक पेशेवर, तार्किक और केवल ठोस फोरेंसिक सबूतों पर भरोसा करने वाले अधिकारी हैं। उन्होंने नाली की खुदाई से लेकर डीएनए मिलान तक की पूरी प्रक्रिया का नेतृत्व किया।',
+                motivation: 'मामले की तह तक जाना, वैज्ञानिक सबूतों की अटूट कड़ी तैयार करना और कोर्ट में दोषियों के खिलाफ ऐसा केस बनाना जो कानूनी रूप से अकाट्य हो।',
+                costume: 'साफ इस्त्री की हुई नीली शर्ट, डार्क ट्राउज़र्स, गले में सीबीआई का आई कार्ड और हाथ में हमेशा चमड़े की फाइल।',
+                style: 'तकनीकी, गंभीर और बिना किसी भावना की हिंदी। अंग्रेजी के कानूनी और फोरेंसिक शब्दों का अधिक प्रयोग। आवाज़ में ठहराव।',
+            },
+            {
+                id: 10,
+                name: 'Advocate Anand Verma',
+                category: 'Law Enforcement',
+                actor: 'Public Prosecutor (State)',
+                bio: 'पीड़ित परिवारों की तरफ से कोर्ट में दलीलें देने वाले समर्पित सरकारी वकील। वे तीखी कानूनी समझ और अपराधियों के प्रति गहरी नफरत के लिए जाने जाते हैं। उन्होंने कोली के इकबालिया बयान और डीएनए रिपोर्ट को अदालत के सामने पुरज़ोर तरीके से रखा।',
+                motivation: 'निठारी के उन बेसहारा मासूम बच्चों को न्याय दिलाना जिनकी आवाज़ घोंट दी गई थी। कोर्ट से दोषियों के लिए फाँसी की सज़ा हासिल करना।',
+                costume: 'काला वकालत का कोट, सफेद कॉलर बैंड, हाथ में फाइलों का पुलिंदा। चेहरे पर गंभीरता और कानून के प्रति सम्मान।',
+                style: 'तेज़, स्पष्ट, आत्मविश्वास से भरी हिंदी। अदालती शब्दावली (जैसे "ताज़ीराते हिंद", "दफ़ा") का प्रचुर उपयोग। आवाज़ में दृढ़ता।',
+            },
+            {
+                id: 11,
+                name: 'Advocate Rajesh Kaushik',
+                category: 'Law Enforcement',
+                actor: 'Defense Counsel for Accused',
+                bio: 'एक अत्यंत चालाक और तार्किक वकील जिन्होंने अदालत में आरोपियों का बचाव किया। वे पुलिस तंत्र की कमियों, मानवाधिकारों के उल्लंघन और फोरेंसिक साक्ष्यों में मौजूद कमियों को ढूँढने में माहिर हैं। उन्होंने कोली के बयान को पुलिस प्रताड़ना का नतीजा बताया।',
+                motivation: 'अपने मुवक्किल के अधिकारों की रक्षा करना और अभियोजन पक्ष के दावों में "संदेह का लाभ" (Benefit of Doubt) ढूँढकर उन्हें जेल से बाहर निकालना।',
+                costume: 'महंगा थ्री-पीस ब्लैक सूट, हाथ में सोने की घड़ी, आँखों में पैनी और विश्लेषणात्मक चमक। हमेशा शांत और आत्मविश्वस्त।',
+                style: 'अत्यंत तार्किक, प्रश्नात्मक और धीमी हिंदी। कोर्ट रूम में जिरह करते वक्त आवाज़ को ज़रूरत के अनुसार ऊँचा या नीचा करने की कला में माहिर।',
+            },
+            {
+                id: 12,
+                name: 'Leela Devi',
+                category: 'Victims/Parents',
+                actor: 'Mother of 9-year-old Amit',
+                bio: 'अमित की माँ, जिसका इकलौता बेटा 2005 की शाम को कोठी D-5 के बाहर से गायब हो गया था। जब वह थाने गईं तो पुलिस ने उन्हें यह कहकर भगा दिया कि "तुम्हारा बेटा किसी होटल में काम करने भाग गया होगा, वापस आ जाएगा।" उनका दर्द उनकी आवाज़ में चीख बनकर फूटता है।',
+                motivation: 'बेटे के हत्यारों को सजा दिलाना और समाज को यह बताना कि पुलिस की संवेदनहीनता ने उनके बच्चों को मौत के मुँह में धकेल दिया।',
+                costume: 'बिना इस्त्री की पुरानी हरी साड़ी, रूखा चेहरा, आँखों में गहरी उदासी और हाथों में बेटे की स्कूल की पुरानी कॉपी।',
+                style: 'तीखी, रोती हुई और ऊँची आवाज़ वाली हिंदी। हर वाक्य में पुलिस और सरकार के लिए बददुआएँ और बेटे की याद में तड़प।',
+            },
+            {
+                id: 13,
+                name: 'Ramesh Kumar',
+                category: 'Victims/Parents',
+                actor: 'Father of 6-year-old Pooja',
+                bio: 'एक गरीब रिक्शा चालक जिसकी छह साल की मासूम बेटी पूजा कोठी D-5 के नौकर की हैवानियत का शिकार बनी। रमेश कुमार ने दिन-रात रिक्शा चलाकर जो पैसे कमाए थे, वे सब पुलिस थानों और वकीलों के चक्कर काटने में खर्च कर दिए। वे व्यवस्था के सामने खुद को हारा हुआ महसूस करते हैं।',
+                motivation: 'अदालत से न्याय पाना, लेकिन साथ ही यह कड़वा सच स्वीकार करना कि न्याय मिलने में बहुत देर हो चुकी है और उनका घर उजाड़ हो चुका है।',
+                costume: 'धुंधली मटमैली धोती-कुर्ता, पैरों में प्लास्टिक के फटे जूते, धूप से झुलसा हुआ चेहरा और झुके हुए कंधे।',
+                style: 'भीमी, टूटी हुई और हताश हिंदी। आवाज़ में एक थके हुए पिता का खालीपन। जैसे वे अब और लड़ने की हिम्मत खो चुके हों।',
+            },
+            {
+                id: 14,
+                name: 'Dr. Vinod Mishra',
+                category: 'Law Enforcement',
+                actor: 'Forensic Pathologist',
+                bio: 'हड्डियों और कंकालों की जाँच करने वाले सरकारी फोरेंसिक डॉक्टर। इन्होंने नाली से मिले नर-अवशेषों की रासायनिक और शारीरिक जाँच की थी। वे वैज्ञानिक सटीकता से बताते हैं कि कैसे बच्चों की खोपड़ियों को काटा गया था और हड्डियों पर चोट के क्या निशान थे।',
+                motivation: 'विज्ञान के ज़रिये सच को साबित करना। यह सुनिश्चित करना कि कंकालों की पहचान और मौत के कारणों की रिपोर्ट बिना किसी गलती के कोर्ट में पेश की जाए।',
+                costume: 'सफेद लैब कोट, गले में स्टेथॉस्कोप (कभी-कभी), हाथों में सर्जिकल ग्लव्स और सामने रखी हुई मानव हड्डियों की तस्वीरें।',
+                style: 'बेहद ठंडी, वैज्ञानिक और गंभीर हिंदी। चिकित्सकीय शब्दावली (जैसे "मैनुअल स्ट्रैंगुलेशन", "क्रेनियल फ्रैक्चर") का सटीक उपयोग।',
+            },
+            {
+                id: 15,
+                name: 'Priya Sharma',
+                category: 'Media/Activists',
+                actor: 'Child Rights Activist (NGO)',
+                bio: 'दिल्ली की एक सामाजिक कार्यकर्ता जो निठारी कांड के बाद गाँव में आकर बस गईं। उन्होंने गरीब परिवारों को संगठित किया, उनके बच्चों के लापता होने के आँकड़े जुटाए और इस मामले को मानवाधिकार आयोग और सुप्रीम कोर्ट तक लेकर गईं।',
+                motivation: 'गरीब और वंचित वर्ग के बच्चों की सुरक्षा सुनिश्चित करना, बाल तस्करी और शोषण के खिलाफ सख्त कानून लागू करवाना।',
+                costume: 'साधारण कुर्ती-सलवार, सूती दुपट्टा, कंधे पर झोला और हाथ में हमेशा पीड़ितों की फाइलों का फोल्डर।',
+                style: 'जोशीली, तार्किक और तीखी हिंदी। भाषण देने की शैली, जहाँ वे सीधे समाज और सरकारी नीतियों पर सवाल उठाती हैं।',
+            },
+            {
+                id: 16,
+                name: 'Santosh (Koli\'s Cousin)',
+                category: 'Accused',
+                actor: 'Koli\'s Relatives / Occasional Visitor',
+                bio: 'सुरिंदर कोली का चचेरा भाई जो कभी-कभी कोठी D-5 में उससे मिलने आता था। उसने कोठी में कुछ अजीब गतिविधियाँ और बदबू महसूस की थी, लेकिन डर और गरीबी के कारण वह हमेशा चुप रहा। पुलिस ने उससे भी लंबी पूछताछ की थी।',
+                motivation: 'खुद को इस मामले से दूर रखना, किसी भी कानूनी झमेले या पुलिस प्रताड़ना से बचना। उसे कोली और पंढेर दोनों से बहुत डर लगता है।',
+                costume: 'सस्ती सिंथेटिक शर्ट, पुरानी पैंट, घबराया हुआ चेहरा और लगातार इधर-उधर देखती आँखें।',
+                style: 'हकलाती, बहुत धीमी और डरी हुई हिंदी। हर वाक्य बोलते समय पीछे देखना जैसे कोई उसे सुन रहा हो।',
+            },
+            {
+                id: 17,
+                name: 'Judge R.P. Singh',
+                category: 'Law Enforcement',
+                actor: 'Sessions Court Judge (2009)',
+                bio: 'गाज़ियाबाद की विशेष सीबीआई अदालत के न्यायाधीश जिन्होंने 2009 में निठारी के मुख्य मुकदमों की सुनवाई की। उन्होंने दोनों पक्षों की जिरह सुनने के बाद सुरिंदर कोली और मोनिंदर सिंह पंढेर को मौत की सजा सुनाई थी।',
+                motivation: 'बिना किसी सामाजिक या राजनीतिक दबाव के, कानून की किताबों और अदालत में पेश सबूतों के आधार पर निष्पक्ष न्याय करना।',
+                costume: 'न्यायाधीश का पारंपरिक काला चोगा (Robe), आंखों पर चश्मा, मेज पर रखी न्याय की हथौड़ी और कानून की मोटी किताबें।',
+                style: 'भारी, गंभीर, अत्यंत औपचारिक और वज़नी हिंदी। उनके बोले गए हर शब्द में अदालत का अनुशासन और कानून की सत्ता झलकती है।',
+            },
+            {
+                id: 18,
+                name: 'Meera Devi (Survivor)',
+                category: 'Victims/Parents',
+                actor: 'The Only Survivor (Escaped in 2005)',
+                bio: 'निठारी की एकमात्र लड़की जो कोठी D-5 के जाल से ज़िंदा बच निकली। 2005 में कोली ने उसे भी घर के अंदर खींच लिया था, लेकिन उसने हिम्मत दिखाई, कोली के हाथ पर काटा और शोर मचाते हुए भाग निकली। उसकी गवाही ने केस में मुख्य भूमिका निभाई।',
+                motivation: 'उस खौफनाक याद से बाहर निकलना, खुद को सुरक्षित महसूस करना और अपनी गवाही से उन मासूमों को न्याय दिलाना जो नहीं बच सके।',
+                costume: 'साधारण सूती सलवार-सूट, चेहरे पर पुराना डर, लेकिन आँखों में जीवित बचे रहने का एक अजीब सा साहस।',
+                style: 'काँपती, धीमी लेकिन दृढ़ हिंदी। उस घटना का ज़िक्र करते समय आवाज़ का बैठ जाना और आँखों में आँसू आ जाना।',
+            },
+            {
+                id: 19,
+                name: 'Aakash (Local Journalist)',
+                category: 'Media/Activists',
+                actor: 'Noida Press Photographer',
+                bio: 'नोएडा का एक स्थानीय फोटो पत्रकार जो सबसे पहले कोठी D-5 के बाहर पहुँचा जब वहाँ नालियों से कंकाल निकाले जा रहे थे। उसने उस वीभत्स दृश्य की ऐसी तस्वीरें लीं जिन्होंने देश की संसद तक को हिलाकर रख दिया।',
+                motivation: 'सच्चाई को बिना किसी सेंसर के अपने कैमरे के लेंस से दुनिया के सामने लाना, चाहे दृश्य कितना भी भयानक क्यों न हो।',
+                costume: 'जींस, मटमैली टी-शर्ट, गले में लटका भारी डीएसएलआर कैमरा और पीठ पर बड़ा लेंस बैग। कैमरे पर मिट्टी के दाग।',
+                style: 'उत्तेजित, तेज़ और थोड़ी अनौपचारिक हिंदी। वह उस भयावह दृश्य का वर्णन ऐसे करता है जैसे सब कुछ उसकी आँखों के सामने अभी हो रहा हो।',
+            }
+        ];
+
+        // 3. DATA MATRIX: 19 Expanded Screenplay Scenes (No Placeholders, Realistic Hindi Dialogues)
+        const SCENES = [
+            {
+                id: 'S01',
+                num: 'Scene 1',
+                act: 'Act I: The Silent Disappearance',
+                location: 'Nithari Slums, Noida Sector 31',
+                year: '2004',
+                time: 'Dusk',
+                context: "स्क्रीन पर घना, काला कोहरा छाया हुआ है। बैकग्राउंड में कुत्तों के भौंकने और एक बच्चे के हँसने की आवाज़ गूँजती है जो धीरे-धीरे गायब हो जाती है। कैमरा धीरे-धीरे नीचे झुकता है और नोएडा के सेक्टर 31 की कोठी नंबर D-5 के लोहे के जंग लगे काले गेट को दिखाता है। वातावरण में एक भारी, डरावनी खामोशी है।",
+                dialogues: [
+                    {
+                        charId: 1,
+                        text: "यह किसी दूरदराज के जंगल की कहानी नहीं है... यह देश की राजधानी से महज़ चंद किलोमीटर दूर बसे एक आधुनिक शहर की कहानी है। एक ऐसा शहर, जहाँ दिन की चकाचौंध में बड़ी-बड़ी इमारतें सिर उठाती हैं... और रात के अंधेरे में एक कोहरे भरी कोठरी के पीछे मासूम बच्चों की चीखें घोंट दी जाती हैं। तीन साल तक... हाँ, पूरे तीन साल तक यहाँ से बच्चे गायब होते रहे, और पूरा सिस्टम आँखें मूंदे सोया रहा।",
+                        tone: "गहरी, काँपती और बहुत धीमी आवाज़ में, जैसे हर शब्द इतिहास के किसी गहरे घाव को कुरेद रहा हो।"
+                    }
+                ]
+            },
+            {
+                id: 'S02',
+                num: 'Scene 2',
+                act: 'Act I: The Ground Zero',
+                location: 'Outside D-5 Bungalow, Sector 31, Noida',
+                year: '2006',
+                time: 'Morning',
+                context: "डॉक्युमेंट्री होस्ट कोठी D-5 के गेट के पास धीरे-धीरे चलता है। गेट पर लगे ताले और नाली के ऊपर जमी काली कीचड़ पर कैमरा फोकस करता है। होस्ट कैमरे की तरफ मुड़ता है। उसकी आँखों में एक खोजी पत्रकार की गंभीरता है।",
+                dialogues: [
+                    {
+                        charId: 2,
+                        text: "दिसंबर 2006। इसी कोठी के पीछे बहने वाले एक उथले नाले ने देश के सबसे बड़े और सबसे वीभत्स नरसंहार का पर्दाफाश किया था। जब पुलिस ने यहाँ खुदाई शुरू की, तो मिट्टी के नीचे से जो निकला, उसने मानवता को शर्मसार कर दिया। बच्चों की खोपड़ियाँ, हड्डियाँ और उनके सड़े-गले कपड़े। आज हम इस कोठी के मुहाने पर खड़े होकर यह जानने की कोशिश करेंगे कि आखिर कैसे इतने सालों तक यह खूनी खेल चलता रहा और किसी को कानोकान खबर नहीं हुई।",
+                        tone: "तटस्थ, गंभीर और तथ्यात्मक आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S03',
+                num: 'Scene 3',
+                act: 'Act I: The Denied Justice',
+                location: 'Noida Sector 20 Police Station (Reconstruction)',
+                year: '2005',
+                time: 'Afternoon',
+                context: "थाने का झुर्रीदार और मटमैला कमरा। छत पर लटका पंखा आवाज़ कर रहा है। सब-इंस्पेक्टर राम चरण अपनी कुर्सी पर बैठे चाय पी रहे हैं और फाइलें पलट रहे हैं। सुनीता देवी अपने हाथों में अपनी ७ साल की बेटी रीना की फोटो लिए उनके सामने खड़ी गिड़गिड़ा रही हैं।",
+                dialogues: [
+                    {
+                        charId: 4,
+                        text: "दरोगा साहब, मेरी बच्ची कल दोपहर से नहीं मिली है। वो बस दुकान से चिप्स लेने गई थी। पूरे चौबीस घंटे हो गए साहब, मैंने झुग्गी का कोना-कोना छान मारा। कोठी D-5 के बाहर उसकी चप्पल मिली है साहब, मुझे डर है कि उस कोठी के अंदर कुछ... साहब मेरी रिपोर्ट लिख लो, मेरी बच्ची को ढूँढ दो साहब!",
+                        tone: "हाथ जोड़कर रोते हुए, आवाज़ में बेबसी का चरम रूप।"
+                    },
+                    {
+                        charId: 8,
+                        text: "अरे ऐ औरत! रोज का नाटक है तुम झुग्गी वालों का। कोई न कोई बच्चा भाग जाता है काम करने दिल्ली। दो दिन में खुद लौट आएगी, यहाँ आकर हमारा सिर मत खा। चल, बाहर निकल! हमारे पास और भी बड़े काम हैं। कोई रिपोर्ट-विपोर्ट नहीं लिखी जाएगी अभी। जब देखो चली आती हैं रोने!",
+                        tone: "चिड़चिड़े और रक्षात्मक लहजे में, मेज पर हाथ पटकते हुए।"
+                    }
+                ]
+            },
+            {
+                id: 'S04',
+                num: 'Scene 4',
+                act: 'Act I: The Cry of the Poor',
+                location: 'Nithari Slum Area, Near D-5',
+                year: '2005',
+                time: 'Evening',
+                context: "गरीब दिहाड़ी मजदूरों की झुग्गियों के बीच का दृश्य। कीचड़ और गंदगी से भरी नालियां। प्रिया शर्मा (NGO कार्यकर्ता) जगन्नाथ प्रसाद के टूटे हुए घर के बाहर खड़ी हैं। जगन्नाथ हाथ में अपने बेटे छोटू की तस्वीर लिए गुस्से में काँप रहे हैं। आस-पास के लोग भी इकट्ठा हैं।",
+                dialogues: [
+                    {
+                        charId: 5,
+                        text: "दीदी, ये पुलिस वाले हमें इंसान ही नहीं समझते! मेरा दस साल का छोटू गायब हो गया, और जब मैं थाने गया तो दरोगा ने कहा कि 'रिपोर्ट लिखवानी है तो दो हजार रुपये लाओ।' मेरे पास तो शाम के खाने के पैसे नहीं थे, मैं रिश्वत कहाँ से देता? उन्होंने मुझे लात मारकर भगा दिया दीदी। वो अमीर कोठी वाले पंढेर के पास पुलिस उठती-बैठती है, और हमारी कोई सुनवाई नहीं!",
+                        tone: "गुस्से में काँपती और चीखती हुई आवाज़ में।"
+                    },
+                    {
+                        charId: 15,
+                        text: "जगन्नाथ जी, हमें डरना नहीं है। यह सिर्फ आपका या सुनीता जी का मामला नहीं है। इस बस्ती से पिछले डेढ़ साल में एक-एक करके पंद्रह से ज्यादा बच्चे गायब हुए हैं। पुलिस जानबूझकर इन मामलों को दबा रही है क्योंकि हम गरीब हैं। हम मानवाधिकार आयोग जाएंगे, हम कोर्ट जाएंगे, लेकिन इन पुलिस वालों को जवाब देना ही होगा।",
+                        tone: "दृढ़, आक्रामक और सामाजिक चेतना से भरी आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S05',
+                num: 'Scene 5',
+                act: 'Act I: The Master and The Servant',
+                location: 'Inside D-5 Bungalow - Richly Decorated Drawing Room',
+                year: '2005',
+                time: 'Night',
+                context: "कोठी D-5 के अंदर का एक भव्य कमरा। मोनिंदर सिंह पंढेर सोफे पर बैठकर विदेशी शराब पी रहे हैं। उनके नौकर सुरिंदर कोली हाथ में ट्रे लिए खड़ा है। कमरे में हल्की क्लासिकल म्यूज़िक बज रही है।",
+                dialogues: [
+                    {
+                        charId: 6,
+                        text: "देखो कोली, मैं अगले तीन दिनों के लिए दिल्ली और चंडीगढ़ के दौरे पर जा रहा हूँ। कोठी की सुरक्षा में कोई कमी नहीं होनी चाहिए। और हाँ... गेट हमेशा अंदर से बंद रखना। मुझे यहाँ कोई फालतू की भीड़ या शोर-शराबा नहीं चाहिए। जो काम मैंने तुम्हें सौंपा है, उसे खामोशी से निपटाते रहो। समझे या नहीं?",
+                        tone: "मापे हुए, संभ्रांत लेकिन ठंडे और रहस्यमयी लहजे में।"
+                    },
+                    {
+                        charId: 7,
+                        text: "जी साहब... बिल्कुल समझ गया। आप बेफिक्र होकर जाइए। कोठी के अंदर कोई शोर नहीं होगा। गेट हमेशा बंद रहेगा। जो आपने कहा है... मैं बिल्कुल वैसा ही करूँगा। कोठी की नाली भी मैं खुद साफ़ कर दूँगा साहब, किसी को शक भी नहीं होगा।",
+                        tone: "सपाट, खाली आँखों से देखते हुए, रोबोट की तरह आज्ञाकारी आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S06',
+                num: 'Scene 6',
+                act: 'Act II: The Excavation of Horror',
+                location: 'Backyard Drain of D-5 Bungalow, Nithari',
+                year: '2006',
+                time: 'Morning',
+                context: "भीषण कोहरा और पुलिस का सुरक्षा घेरा। नाली से कीचड़ निकाला जा रहा है। स्थानीय फोटो पत्रकार आकाश कैमरे से धड़ाधड़ तस्वीरें ले रहा है। वरिष्ठ रिपोर्टर चित्रा सिंह लाइव रिपोर्टिंग कर रही हैं। पृष्ठभूमि में चीखते-चिल्लाते पीड़ित परिवारों की भीड़ है।",
+                dialogues: [
+                    {
+                        charId: 19,
+                        text: "चित्रा जी, देखो! वो नाली से क्या निकला! वो एक बच्चे की खोपड़ी है! हे भगवान, ये तो नरक है। पुलिस नाले से एक के बाद एक पॉलिथीन की थैलियां निकाल रही है... सब में हड्डियां हैं! मैंने अपनी पूरी ज़िंदगी में ऐसा खौफनाक दृश्य कभी नहीं देखा। मेरी उँगलियाँ कैमरा चलाने में काँप रही हैं।",
+                        tone: "उत्तेजित, घबराए हुए और सहमे स्वर में।"
+                    },
+                    {
+                        charId: 3,
+                        text: "मैं इस वक्त कोठी D-5 के पीछे खड़ी हूँ। पुलिस की लापरवाही का इससे बड़ा और जीवंत सबूत क्या होगा? जिस नाले के पास गरीब माँ-बाप सालों से पुलिस को ढूँढने की मिन्नतें कर रहे थे, आज उसी नाले से बच्चों के कंकाल उगल रहे हैं। पूरा देश स्तब्ध है। यह नोएडा पुलिस के मुँह पर सबसे बड़ा तमाचा है!",
+                        tone: "तेज़, बुलंद और गुस्से से भरी लाइव रिपोर्टिंग शैली में।"
+                    }
+                ]
+            },
+            {
+                id: 'S07',
+                num: 'Scene 7',
+                act: 'Act II: The Forensic Analysis',
+                location: 'State Forensic Science Laboratory, Forensic Table',
+                year: '2007',
+                time: 'Day',
+                context: "फोरेंसिक पैथोलॉजिस्ट डॉ. विनोद मिश्रा मेज पर रखी इंसानी खोपड़ियों और हड्डियों के टुकड़ों की जाँच कर रहे हैं। उनके हाथ में सर्जिकल चिमटा है। सीबीआई के मुख्य जाँचकर्ता एस.के. शर्मा उनके बगल में खड़े होकर रिपोर्ट लिख रहे हैं।",
+                dialogues: [
+                    {
+                        charId: 14,
+                        text: "शर्मा जी, इन अवशेषों की स्थिति अत्यंत चिंताजनक है। हड्डियों को लंबे समय तक गंदे पानी और तेजाब के संपर्क में रखा गया था ताकि वे गल जाएं। लेकिन क्रेनियल कट मार्क्स (Cranial Cut Marks) से स्पष्ट है कि सिर को धड़ से अलग करने के लिए किसी बहुत तेज़ आरी या धारदार सर्जिकल ब्लेड का इस्तेमाल किया गया था। यह किसी अनाड़ी का काम नहीं है, इसमें एक क्रूर सटीकता है।",
+                        tone: "क्लीनिकल, ठंडी और वैज्ञानिक आवाज़ में।"
+                    },
+                    {
+                        charId: 9,
+                        text: "डॉक्टर मिश्रा, हमारे लिए सबसे महत्वपूर्ण यह है कि हम इन हड्डियों का डीएनए मिलान पीड़ितों के खून से करवा सकें। कुल 28 कंकालों के अवशेष मिले हैं। यूपी पुलिस ने सबूतों को पहले ही बहुत दूषित (Contaminate) कर दिया है, लेकिन हमें अदालत के सामने ठोस वैज्ञानिक साक्ष्य रखने होंगे वरना ये हत्यारे बच निकलेंगे।",
+                        tone: "तथ्यात्मक, गंभीर और कानूनी रूप से सतर्क आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S08',
+                num: 'Scene 8',
+                act: 'Act II: The Chilling Confession',
+                location: 'CBI Interrogation Cell, New Delhi (Dramatization)',
+                year: '2007',
+                time: 'Night',
+                context: "कमरे में केवल एक टेबल और दो कुर्सियां हैं। ऊपर एक तीखा पीला बल्ब जल रहा है। सुरिंदर कोली बिल्कुल शांत बैठा है, उसके चेहरे पर कोई डर नहीं है। एस.के. शर्मा उसके ठीक सामने बैठे हैं। कोली बहुत ही शांत और स्वाभाविक तरीके से बोलना शुरू करता है।",
+                dialogues: [
+                    {
+                        charId: 7,
+                        text: "साहब... मैं सुबह छह बजे उठता था। पहले कोठी की साफ़-सफ़ाई करता था, फिर साहब के लिए नाश्ता और चाय बनाता था। साहब को घर में थोड़ी भी गंदगी पसंद नहीं थी। दोपहर में जब साहब काम पर चले जाते, तो कोठी बिल्कुल सुनसान हो जाती थी। मैं गेट के पास आकर खड़ा हो जाता था। जब कोई छोटा बच्चा नाली के पास प्लास्टिक बीनने आता या गली से गुज़रता, तो मैं उसे बुला लेता था। मैं कहता था कि 'अंदर आओ, साहब ने सुंदर खिलौने और चॉकलेट रखी हैं।' बच्चे सीधे होते हैं साहब, आ जाते थे। जैसे ही वो अंदर आते, मैं कोठी का मुख्य दरवाज़ा बंद कर देता था। फिर मैं उन्हें पीछे के कमरे में ले जाता था। उनका गला घोंट देता था ताकि वो चीख न सकें। इसके बाद... मैं उनके शरीर के छोटे-छोटे टुकड़े करता था, उन्हें काली पॉलिथीन में बाँधता था और कोठी के पीछे की नाली में फेंक देता था। यह मेरा रोज़ का नियम था साहब। मुझे इसमें कुछ गलत नहीं लगा... जो साहब ने कहा, मैंने वही किया।",
+                        tone: "बेहद सपाट, मोनोटोन और ठंडी आवाज़ में, जैसे रसोई की किसी रेसिपी का वर्णन कर रहा हो।"
+                    }
+                ]
+            },
+            {
+                id: 'S09',
+                num: 'Scene 9',
+                act: 'Act II: The Shared Agony',
+                location: 'Slum Basti, Nithari Village',
+                year: '2007',
+                time: 'Dusk',
+                context: "शाम ढल चुकी है। झुग्गियों के बाहर सुनीता देवी, लीला देवी और रमेश कुमार एक साथ बैठे हैं। लीला देवी अपने हाथ में अपने गायब बेटे अमित की तस्वीर पकड़े रो रही हैं। रमेश कुमार का चेहरा हताशा से भरा है।",
+                dialogues: [
+                    {
+                        charId: 12,
+                        text: "जब पुलिस ने कोठी से कपड़े निकाले, तो मैंने अपने अमित की वो नीली टी-शर्ट पहचानी। मेरा बच्चा... वो राक्षस उसे खा गया। और पुलिस वाले हमसे कहते थे कि 'तुम्हारा बेटा किसी ढाबे पर काम करने भाग गया है।' अगर उस समय पुलिस ने मेरी बात सुन ली होती, तो मेरा बेटा आज मेरे सामने खड़ा होता। इन पुलिस वालों ने हमारे बच्चों को मार डाला साहब, ये भी उतने ही गुनहगार हैं!",
+                        tone: "चीखते और रोते हुए, छाती पीटते हुए।"
+                    },
+                    {
+                        charId: 13,
+                        text: "लीला बहन, रोने से अब क्या होगा? हमारी तो तकदीर ही खोटी थी। मैं दिन भर रिक्शा चलाकर जो दो पैसे कमाता था, वो पुलिस वालों को खुश करने में चले गए। मेरी छह साल की पूजा... वो तो इतनी मासूम थी कि उसे मौत का मतलब भी नहीं पता था। हमें न्याय कौन देगा? अदालतें अमीर की सुनती हैं, हम तो सिर्फ तारीखों पर चक्कर काटते रहेंगे।",
+                        tone: "भीमी और हताश आवाज़ में, आँखें झुकाए हुए।"
+                    }
+                ]
+            },
+            {
+                id: 'S10',
+                num: 'Scene 10',
+                act: 'Act II: The Escape',
+                location: 'NGO Safehouse, Delhi',
+                year: '2005',
+                time: 'Morning',
+                context: "कमरे में प्रिया शर्मा बैठी हैं। उनके सामने चौदह साल की मीरा देवी बैठी है। मीरा की आँखें डरी हुई हैं, वह अपने हाथों को लगातार रगड़ रही है। वह उस भयानक पल को याद करती है।",
+                dialogues: [
+                    {
+                        charId: 18,
+                        text: "दीदी... मैं D-5 कोठी के सामने से गुज़र रही थी। कोली ने मुझे अंदर बुलाया और कहा कि 'साहब बुला रहे हैं, झाड़ू-पोछा कर दे, पचास रुपये मिलेंगे।' जैसे ही मैं अंदर गई, उसने तुरंत गेट पर कुंडी लगा दी। उसने पीछे से मेरा मुँह दबाया और मुझे कमरे की तरफ खींचने लगा। मुझे बहुत डर लगा दीदी... मुझे लगा मैं कभी वापस नहीं जाऊँगी। मैंने अपनी पूरी ताकत से उसके हाथ पर काटा... बहुत ज़ोर से काटा। उसने चिल्लाकर मुझे छोड़ दिया और मैं कुंडी खोलकर बाहर भागी। मैंने अपने माँ-बाप को बताया, पर उन्होंने कहा कि 'अमीर लोग हैं, पुलिस केस करेंगे तो हमें यहाँ से भगा देंगे।' इसलिए हम चुप रहे दीदी... काश हम पुलिस के पास जाते।",
+                        tone: "काँपती हुई आवाज़ में, आँखों में पुराना खौफ तैरते हुए।"
+                    }
+                ]
+            },
+            {
+                id: 'S11',
+                num: 'Scene 11',
+                act: 'Act II: The Silent Witness',
+                location: 'CBI interrogation Room (Reconstruction)',
+                year: '2007',
+                time: 'Afternoon',
+                context: "संतोष (कोली का चचेरा भाई) जाँचकर्ता एस.के. शर्मा के सामने बैठा है। वह थर-थर काँप रहा है, उसके माथे से पसीना बह रहा है।",
+                dialogues: [
+                    {
+                        charId: 16,
+                        text: "साहब... मैं तो बस कभी-कभी सुरिंदर से मिलने कोठी जाता था। एक बार मैंने कोठी के पीछे बहुत अजीब सी बदबू महसूस की थी। जैसे कोई मांस सड़ रहा हो। मैंने सुरिंदर से पूछा तो उसने कहा कि 'साहब ने बड़ी मछली मँगाई थी, वो सड़ गई है।' मुझे कोठी के अंदर अजीब सी आहटें भी सुनाई देती थीं। लेकिन मैं गरीब आदमी हूँ साहब... पंढेर साहब बहुत बड़े और पहुँच वाले आदमी थे। अगर मैं कुछ बोलता तो मुझे ही चोर साबित कर जेल में डाल देते। इसलिए मैंने आँखें बंद कर लीं साहब... मुझे माफ़ कर दो।",
+                        tone: "हकलाते हुए और हाथ जोड़कर गिड़गिड़ाते हुए।"
+                    }
+                ]
+            },
+            {
+                id: 'S12',
+                num: 'Scene 12',
+                act: 'Act III: The Trial Begins',
+                location: 'CBI Special Court, Ghaziabad',
+                year: '2009',
+                time: 'Day',
+                context: "अदालत खचाखच भरी हुई है। कटघरे में कोली और पंढेर खड़े हैं। जज आर.पी. सिंह अपनी चेयर पर बैठे हैं। सरकारी वकील आनंद वर्मा और बचाव पक्ष के वकील राजेश कौशिक जज के सामने दलीलें पेश कर रहे हैं।",
+                dialogues: [
+                    {
+                        charId: 10,
+                        text: "माननीय न्यायालय, यह मामला केवल हत्या का नहीं है, यह मानवता के इतिहास पर एक बदनुमा दाग है। अभियुक्त सुरिंदर कोली ने खुद मजिस्ट्रेट के समक्ष धारा 164 के तहत स्वैच्छिक इकबालिया बयान दिया है। नाली से बरामद डीएनए और बच्चों के अवशेष इस बयान की पुष्टि करते हैं। अभियुक्तों ने साज़िश के तहत इन मासूमों को मौत के घाट उतारा। राज्य की माँग है कि दोषियों को फाँसी की सज़ा दी जाए।",
+                        tone: "गंभीर, बुलंद और तीखे कानूनी लहजे में।"
+                    },
+                    {
+                        charId: 11,
+                        text: "माननीय न्यायाधीश महोदय, अभियोजन पक्ष का पूरा मामला पुलिस कस्टडी में बलपूर्वक लिए गए बयानों पर आधारित है। धारा 24 साक्ष्य अधिनियम के तहत ऐसे बयान पूरी तरह अमान्य हैं। मेरे मुवक्किल कोली को प्रताड़ित करके यह कबूलनामा लिया गया। फोरेंसिक सबूतों की विश्वसनीयता भी संदिग्ध है क्योंकि पुलिस ने नाली से हड्डियों की बरामदगी के समय स्वतंत्र गवाहों को शामिल नहीं किया। यह पूरा केस संदेह के घेरे में है।",
+                        tone: "शांत, तार्किक और विश्लेषणात्मक आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S13',
+                num: 'Scene 13',
+                act: 'Act III: Scientific Proof',
+                location: 'CBI Office / Presentation Hall',
+                year: '2007',
+                time: 'Day',
+                context: "एस.के. शर्मा और डॉ. विनोद मिश्रा व्हाइटबोर्ड पर कोठी D-5 के नक्शे और डीएनए चार्ट के ज़रिए मीडिया को ब्रीफ कर रहे हैं।",
+                dialogues: [
+                    {
+                        charId: 14,
+                        text: "हमने नाले से कुल 17 खोपड़ियों को बरामद किया है। क्रेनियल सुपरइम्पोज़िशन (Cranial Superimposition) और डीएनए प्रोफाइलिंग के ज़रिए हमने इन बच्चों की पहचान सुनीता देवी, जगन्नाथ प्रसाद और लीला देवी के लापता बच्चों के रूप में स्थापित की है। यह वैज्ञानिक साक्ष्य अकाट्य है और कोर्ट में इसकी सत्यता को नकारा नहीं जा सकता।",
+                        tone: "वैज्ञानिक और स्पष्ट आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S14',
+                num: 'Scene 14',
+                act: 'Act III: The Tears in Court',
+                location: 'Ghaziabad Court Corridor',
+                year: '2009',
+                time: 'Afternoon',
+                context: "अदालत की लॉबी में रमेश कुमार और लीला देवी बेंच पर बैठे हैं। उनके चेहरे पर थकान और न्याय की प्रतीक्षा का दर्द साफ़ देखा जा सकता है।",
+                dialogues: [
+                    {
+                        charId: 12,
+                        text: "रमेश भाई, आज कोर्ट में वो वकील साहब कह रहे थे कि हमारे बच्चों का डीएनए सही से नहीं मिला। क्या हमारी ममता भी झूठी है? क्या हमने अपने बच्चों को खुद गायब किया है? ये अमीर लोग बड़े वकील करके बच जाएंगे और हमारे बच्चे... हमारे बच्चों की आत्मा भटकती रहेगी।",
+                        tone: "सिसकते हुए और निराशा से भरी आवाज़ में।"
+                    },
+                    {
+                        charId: 13,
+                        text: "लीला बहन, कानून अंधा होता है, यह तो सुना था, पर आज देख भी लिया। वे कोर्ट में कागज़ों का खेल खेल रहे हैं और हम यहाँ जीते-जी मर रहे हैं। न्याय मिले या न मिले, हमारी बच्ची तो वापस नहीं आएगी। बस भगवान उस राक्षस को कभी माफ़ न करे।",
+                        tone: "गहरी लंबी सांस लेते हुए, अत्यंत दुखी स्वर में।"
+                    }
+                ]
+            },
+            {
+                id: 'S15',
+                num: 'Scene 15',
+                act: 'Act III: The Death Sentence',
+                location: 'CBI Special Court, Ghaziabad',
+                year: '2009',
+                time: 'Day',
+                context: "अदालत में सन्नाटा पसरा हुआ है। जज आर.पी. सिंह अपना चश्मा ठीक करते हैं, पेन उठाते हैं और फैसला पढ़ना शुरू करते हैं। कोली और पंढेर शांत खड़े हैं।",
+                dialogues: [
+                    {
+                        charId: 17,
+                        text: "अदालत अभियोजन पक्ष के तर्कों और फोरेंसिक रिपोर्टों से सहमत है। यह अपराध केवल क्रूर नहीं है, बल्कि समाज की चेतना को झकझोरने वाला 'दुर्लभ से दुर्लभतम' (Rarest of Rare) मामला है। अतः यह अदालत अभियुक्त सुरिंदर कोली और मोनिंदर सिंह पंढेर को भारतीय दंड संहिता की धारा 302 और 364 के तहत दोषी पाते हुए... मृत्युदंड (फाँसी की सज़ा) सुनाती है। इन्हें तब तक गले में फाँसी के फंदे पर लटकाया जाए जब तक इनकी मृत्यु न हो जाए।",
+                        tone: "अत्यंत गंभीर, भारी और औपचारिक अदालती आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S16',
+                num: 'Scene 16',
+                act: 'Act III: The Jailhouse Denial',
+                location: 'Dasna Jail, Ghaziabad - Visitor\'s Room',
+                year: '2012',
+                time: 'Afternoon',
+                context: "पंढेर जेल की सलाखों के पीछे बैठा है। उसका रेशमी कुर्ता अब जेल के साधारण सफेद कपड़ों में बदल चुका है। उसका वकील राजेश कौशिक उसके सामने बैठा है।",
+                dialogues: [
+                    {
+                        charId: 6,
+                        text: "कौशिक साहब, मैं फिर कह रहा हूँ... मेरा इस पूरे मामले से कोई लेना-देना नहीं है। मैं तो अक्सर दिल्ली में अपनी कंपनी के काम से रहता था। कोली मेरा नौकर था, मैंने उस पर भरोसा किया। उसने मेरे पीछे मेरे ही घर में ये भयानक काम किए। सीबीआई मुझे सिर्फ इसलिए फँसा रही है क्योंकि मैं अमीर हूँ और उन्हें किसी बड़े नाम की ज़रूरत थी। हमें इलाहाबाद हाई कोर्ट में अपील करनी होगी। मैं फाँसी के फंदे पर नहीं चढ़ूँगा।",
+                        tone: "घबराहट और गुस्से के मिश्रण वाली दबी आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S17',
+                num: 'Scene 17',
+                act: 'Act IV: The 2023 Acquittal Verdict',
+                location: 'Allahabad High Court / Discussion Room',
+                year: '2023',
+                time: 'Afternoon',
+                context: "दस्तावेज़ों से भरा कमरा। सरकारी वकील आनंद वर्मा और सीबीआई जाँचकर्ता एस.के. शर्मा इलाहाबाद हाई कोर्ट के फैसले की कॉपी हाथ में लिए बैठे हैं। उनकी आँखों में गहरी निराशा है।",
+                dialogues: [
+                    {
+                        charId: 11,
+                        text: "वर्मा साहब, इलाहाबाद हाई कोर्ट का फैसला बिल्कुल स्पष्ट है। कोर्ट ने माना कि अभियोजन पक्ष कोली और पंढेर के खिलाफ संदेह से परे आरोप साबित करने में पूरी तरह विफल रहा। कोली के इकबालिया बयान को कोर्ट ने अमान्य घोषित कर दिया क्योंकि वह पुलिस हिरासत में शारीरिक प्रताड़ना देकर लिया गया था। धारा 24 के तहत उस बयान की कोई कानूनी मान्यता नहीं थी। इसके अलावा, नाले से जो बरामदगी दिखाई गई थी, उसकी चेन ऑफ कस्टडी (Chain of Custody) पूरी तरह से टूटी हुई थी। सबूतों के इस भारी अभाव में कोर्ट के पास बरी करने के अलावा कोई विकल्प नहीं था।",
+                        tone: "शांत, तार्किक और कानूनी विश्लेषण की आवाज़ में।"
+                    },
+                    {
+                        charId: 10,
+                        text: "यह हमारे पूरे क्रिमिनल जस्टिस सिस्टम की हार है, शर्मा जी! 17 बच्चों के कंकाल नाली से मिले, पूरा देश इस सच का गवाह है, लेकिन कोर्ट में हम तकनीकी कारणों और जाँच की भारी कमियों की वजह से हार गए। पुलिस ने शुरू में ही केस को बर्बाद कर दिया था। आज उन गरीब माँ-बाप के पास जाकर हम क्या मुँह दिखाएंगे? उनके बच्चे भी गए, और इंसाफ भी नहीं मिला।",
+                        tone: "हताश और बेहद भारी आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S18',
+                num: 'Scene 18',
+                act: 'Act IV: The System\'s Mirror',
+                location: 'Outside D-5, Sector 31, Noida',
+                year: '2023',
+                time: 'Dusk',
+                context: "शाम की धुंध। कोठी D-5 की दीवारें अब और जर्जर हो चुकी हैं। जंगली घास उग आई है। होस्ट कैमरे की तरफ सीधे देखते हुए बोलता है। बगल में वरिष्ठ पत्रकार चित्रा सिंह खड़ी हैं।",
+                dialogues: [
+                    {
+                        charId: 2,
+                        text: "अक्टूबर 2023 में इलाहाबाद हाई कोर्ट ने दोनों मुख्य आरोपियों को सबूतों के अभाव में बरी कर दिया। सुरिंदर कोली जो फाँसी की सज़ा काट रहा था, और पंढेर जो जेल से बाहर आ चुका है। यह केस हमें सिखाता है कि न्याय केवल चिल्लाने या मीडिया ट्रायल से नहीं मिलता। न्याय के लिए पुलिस की मुस्तैदी और वैज्ञानिक जाँच की ज़रूरत होती है, जो निठारी में कभी नहीं हुई।",
+                        tone: "शांत और तीखी आवाज़ में।"
+                    },
+                    {
+                        charId: 3,
+                        text: "निठारी सिर्फ एक जघन्य अपराध नहीं था, यह हमारे समाज के दोहरे चरित्र का आईना था। अगर गायब होने वाले बच्चे किसी रईस घराने के होते, तो पुलिस पहले ही दिन हरकत में आ जाती। लेकिन वे गरीब झुग्गी-झोपड़ी के बच्चे थे, जिनकी ज़िंदगी की कीमत पुलिस और सिस्टम की नज़र में कुछ भी नहीं थी। सिस्टम ने उन्हें एक बार तब मारा जब वे लापता हुए, और दूसरी बार तब मारा जब कोर्ट से हत्यारे बरी हो गए।",
+                        tone: "आँखों में गहरी उदासी और गंभीर आवाज़ में।"
+                    }
+                ]
+            },
+            {
+                id: 'S19',
+                num: 'Scene 19',
+                act: 'Epilogue: Unanswered Questions',
+                location: 'Makeshift Memorial Wall near Nithari Village',
+                year: '2023',
+                time: 'Dusk',
+                context: "एक छोटी सी कच्ची दीवार जिस पर लापता बच्चों की पुरानी तस्वीरें टंगी हैं। सुनीता देवी, जगन्नाथ प्रसाद और अन्य माँ-बाप मोमबत्तियाँ जला रहे हैं। कोहरा धीरे-धीरे गहरा हो जाता है। कैमरे का फोकस एक मोमबत्ती की लौ पर जाता है।",
+                dialogues: [
+                    {
+                        charId: 4,
+                        text: "रीना... मेरी बच्ची। माँ आज भी यहीं है। जब तक मेरी सांस चलेगी, मैं तेरा इंतज़ार करूँगी। न्याय तो इस दुनिया में नहीं मिला बेटा... पर भगवान के घर में कोई कानून की कमियाँ नहीं चलेंगी।",
+                        tone: "मोमबत्ती की लौ को देखते हुए फुसफुसाहट के साथ, आँखों से बहते आँसू।"
+                    },
+                    {
+                        charId: 5,
+                        text: "छोटू, तेरे लिए मैं कोर्ट की सीढ़ियाँ चढ़ता रहा... पर ये दुनिया बहुत जालिम है। यहाँ गरीबों का कोई नहीं है बेटा। कोई नहीं है।",
+                        tone: "रूखी, शांत और थकी हुई आवाज़ में।"
+                    },
+                    {
+                        charId: 1,
+                        text: "नोएडा की उस नाली का पानी आज भी बहता है... पर निठारी के वो सवाल आज भी हवा में लटके हैं। क्या हम कभी जान पाएंगे कि उन 28 मासूमों की मौत का असली गुनहगार कौन था? या फिर यह केस भी फाइलों के ढेर में दबकर रह जाएगा? कुछ कहानियों का कोई अंत नहीं होता... केवल एक अनंत दर्द होता है जो जीवित बचे लोगों के सीने में सुलगता रहता है।",
+                        tone: "अत्यंत धीमी, भारी और सस्पेंस भरे उतार-चढ़ाव के साथ। कोहरे के गहरे कालेपन में आवाज़ धीरे-धीरे विलीन हो जाती है।"
+                    }
+                ]
+            }
+        ];
+
+        // 4. APPLICATION STATE MANAGEMENT
+        let currentFilter = 'All';
+        let currentSearchQuery = '';
+        let selectedCharacterId = null;
+        let isReadMode = false;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            renderRoster();
+            updateTotalCounters();
+        });
+
+        // Toggle mobile sidebar
+        function toggleSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Filter roster by category tabs
+        function filterCategory(category, buttonEl) {
+            currentFilter = category;
+
+            // Toggle active styling on buttons
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-blood-red', 'text-white');
+                btn.classList.add('bg-netflix-card', 'border-netflix-border', 'text-muted-text');
+            });
+            buttonEl.classList.remove('bg-netflix-card', 'border-netflix-border', 'text-muted-text');
+            buttonEl.classList.add('active', 'bg-blood-red', 'text-white');
+
+            renderRoster();
+        }
+
+        // Search Handlers
+        function handleSearch() {
+            currentSearchQuery = document.getElementById('global-search').value.toLowerCase().trim();
+            renderRoster();
+        }
+
+        function handleSearchMobile() {
+            currentSearchQuery = document.getElementById('global-search-mobile').value.toLowerCase().trim();
+            renderRoster();
+        }
+
+        // Calculate total scenes a character appears in
+        function getSceneCount(charId) {
+            return SCENES.filter(scene => scene.dialogues.some(d => d.charId === charId)).length;
+        }
+
+        // Render Roster list
+        function renderRoster() {
+            const rosterContainer = document.getElementById('character-roster');
+            rosterContainer.innerHTML = '';
+
+            const filteredCharacters = CHARACTERS.filter(char => {
+                const matchesCategory = (currentFilter === 'All' || char.category === currentFilter);
+
+                // Match search query against name, role, bio, or dialogues
+                const matchesSearch = !currentSearchQuery ||
+                    char.name.toLowerCase().includes(currentSearchQuery) ||
+                    char.actor.toLowerCase().includes(currentSearchQuery) ||
+                    char.bio.toLowerCase().includes(currentSearchQuery) ||
+                    SCENES.some(scene =>
+                        scene.dialogues.some(d => d.charId === char.id && d.text.toLowerCase().includes(currentSearchQuery))
+                    );
+
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredCharacters.length === 0) {
+                rosterContainer.innerHTML = `
+                    <div class="text-center py-10 text-xs text-muted-text flex flex-col items-center gap-3">
+                        <svg class="w-8 h-8 text-blood-red/40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>No characters match search filters</span>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredCharacters.forEach(char => {
+                const categoryMeta = CATEGORIES[char.category] || { bgClass: 'bg-netflix-border', textClass: 'text-white' };
+                const sceneCount = getSceneCount(char.id);
+                const isActive = selectedCharacterId === char.id;
+
+                const initials = char.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+
+                const cardHtml = `
+                    <div onclick="selectCharacter(${char.id})" 
+                         class="char-card p-3 rounded-lg border bg-netflix-card/60 transition-all cursor-pointer flex items-center justify-between gap-3 group 
+                                ${isActive ? 'border-blood-red bg-netflix-card text-white shadow-md' : 'border-netflix-border hover:border-blood-red/40'}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <!-- Styled Initial Avatar -->
+                            <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-display text-xs font-bold border 
+                                        ${isActive ? 'border-blood-red bg-blood-red/20 text-white' : 'border-netflix-border bg-netflix-dark text-muted-text group-hover:border-blood-red/30'}">
+                                ${initials}
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="text-xs font-semibold tracking-wide truncate ${isActive ? 'text-white' : 'text-subtle-gray'}">${char.name}</h4>
+                                <p class="text-[10px] text-muted-text truncate">${char.actor}</p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0 flex flex-col items-end gap-1">
+                            <span class="text-[8px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded text-white ${categoryMeta.bgClass}">
+                                ${char.category.split('/')[0]}
+                            </span>
+                            <span class="font-mono text-[9px] text-muted-text">${sceneCount} scenes</span>
+                        </div>
+                    </div>
+                `;
+                rosterContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // Selection of Character
+        function selectCharacter(charId) {
+            selectedCharacterId = charId;
+            const char = CHARACTERS.find(c => c.id === charId);
+            if (!char) return;
+
+            // Close mobile sidebar on selection
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                toggleSidebarMobile();
+            }
+
+            // Hide welcome screen, reveal profile detail container
+            document.getElementById('welcome-screen').classList.add('hidden');
+            const detailPanel = document.getElementById('character-detail-panel');
+            detailPanel.classList.remove('hidden');
+            detailPanel.classList.add('flex');
+
+            // Render Hero Banner details
+            document.getElementById('detail-name').innerText = char.name;
+            document.getElementById('detail-actor-tag').innerText = `Role: ${char.actor}`;
+
+            const initials = char.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+            const portrait = document.getElementById('detail-portrait');
+            portrait.innerText = initials;
+
+            const categoryTag = document.getElementById('detail-category');
+            categoryTag.innerText = char.category;
+
+            // Dynamic category tag backgrounds
+            categoryTag.className = "px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase text-white " + (CATEGORIES[char.category]?.bgClass || "bg-netflix-border");
+
+            // Profile info cards
+            document.getElementById('profile-bio').innerText = char.bio;
+            document.getElementById('profile-motivation').innerText = char.motivation;
+            document.getElementById('profile-costume').innerText = char.costume;
+            document.getElementById('profile-style').innerText = char.style;
+
+            // Render dialogues
+            renderCharacterScreenplay(charId);
+
+            // Re-render sidebar to highlight active character card
+            renderRoster();
+
+            // Scroll detail panel to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Render Character Chronological Scenes and Dialogues
+        function renderCharacterScreenplay(charId) {
+            const container = document.getElementById('scenes-container');
+            container.innerHTML = '';
+
+            const matchedScenes = SCENES.filter(scene => scene.dialogues.some(d => d.charId === charId));
+
+            document.getElementById('scene-counter-badge').innerText = `${matchedScenes.length} scenes mapped`;
+
+            if (matchedScenes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-sm text-muted-text border border-dashed border-netflix-border rounded-xl">
+                        No dialogic scenes found for this specific character in this cut.
+                    </div>
+                `;
+                return;
+            }
+
+            matchedScenes.forEach(scene => {
+                // Generate dialogues layout
+                let dialoguesHtml = '';
+                scene.dialogues.forEach(dialogue => {
+                    const speakingChar = CHARACTERS.find(c => c.id === dialogue.charId) || { name: 'Unknown' };
+                    const isTarget = dialogue.charId === charId;
+
+                    dialoguesHtml += `
+                        <div class="dialogue-block p-4 rounded-lg transition-all ${isTarget ? 'bg-blood-red/5 border-l-2 border-blood-red pl-5' : 'border-l border-netflix-border pl-4 bg-netflix-dark/20'}">
+                            <div class="flex items-center justify-between gap-3 mb-2.5">
+                                <span class="text-xs font-bold tracking-wider ${isTarget ? 'text-crimson-glow' : 'text-subtle-gray'}">
+                                    ${speakingChar.name} ${isTarget ? '<span class="text-[9px] font-mono text-blood-red uppercase tracking-widest ml-1 bg-blood-red/10 px-1.5 py-0.5 rounded border border-blood-red/20">(Selected Character)</span>' : ''}
+                                </span>
+                            </div>
+                            <p class="dialogue-text font-display text-base md:text-lg text-white leading-relaxed tracking-wide italic">
+                                "${dialogue.text}"
+                            </p>
+                            <div class="mt-2.5 flex items-center gap-1.5">
+                                <span class="bg-netflix-dark/60 text-blood-red text-[10px] font-light px-2.5 py-0.5 rounded border border-netflix-border italic">
+                                    Tone: ${dialogue.tone}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const sceneHtml = `
+                    <div class="scene-card bg-netflix-card border border-netflix-border rounded-xl overflow-hidden shadow-lg transition-all hover:border-blood-red/30">
+                        <!-- Scene Meta Header -->
+                        <div class="bg-netflix-dark border-b border-netflix-border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <span class="bg-blood-red text-white text-[9px] font-mono font-bold tracking-wider px-2 py-0.5 rounded uppercase">
+                                    ${scene.num}
+                                </span>
+                                <span class="text-xs font-mono font-medium text-gold-accent tracking-widest uppercase">
+                                    ${scene.act}
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs text-muted-text uppercase tracking-wider font-mono">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-blood-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    ${scene.location}
+                                </span>
+                                <span>·</span>
+                                <span>Year: ${scene.year}</span>
+                                <span>·</span>
+                                <span>Time: ${scene.time}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Scene Context Block -->
+                        <div class="p-4 bg-netflix-black/50 border-b border-netflix-border">
+                            <div class="scene-context bg-netflix-dark/40 border-l-2 border-gold-accent/50 p-3 rounded-r text-xs text-muted-text italic leading-relaxed">
+                                <strong class="text-[9px] uppercase font-mono tracking-widest text-gold-accent block mb-1">Scene Action &amp; Directions (English)</strong>
+                                ${scene.context}
+                            </div>
+                        </div>
+
+                        <!-- Scene Dialogues -->
+                        <div class="p-5 space-y-4">
+                            ${dialoguesHtml}
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', sceneHtml);
+            });
+        }
+
+        // Global stats update
+        function updateTotalCounters() {
+            document.getElementById('stat-chars').innerText = CHARACTERS.length;
+            document.getElementById('stat-scenes').innerText = SCENES.length;
+        }
+
+        // Toggle Read Mode / Full-Width Script Maximize
+        function toggleReadMode() {
+            isReadMode = !isReadMode;
+            const body = document.body;
+            const btn = document.getElementById('read-mode-btn');
+
+            if (isReadMode) {
+                body.classList.add('read-mode-active');
+                btn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    <span>Exit Read Mode</span>
+                `;
+                btn.classList.remove('bg-netflix-dark');
+                btn.classList.add('bg-blood-red');
+            } else {
+                body.classList.remove('read-mode-active');
+                btn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    <span>Read Mode</span>
+                `;
+                btn.classList.remove('bg-blood-red');
+                btn.classList.add('bg-netflix-dark');
+            }
+        }
+
+        // Print Screenplay
+        function printCharacterScript() {
+            window.print();
+        }
+    </script>
+</body>
+
+</html>
